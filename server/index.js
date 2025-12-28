@@ -1,27 +1,26 @@
-import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
+const express = require("express");
+const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// === FIX PATH ===
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// лог, чтобы Render видел запуск
+console.log("Starting server...");
 
-// === STATIC ===
-app.use(express.static(path.join(__dirname, "../public")));
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "..", "public")));
 
-// === API TEST ===
-app.get("/api/test", (req, res) => {
-  res.json({ ok: true });
+// тестовый роут
+app.get("/ping", (req, res) => {
+  res.send("pong");
 });
 
-// === SPA FALLBACK ===
+// отдаём HTML
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/index.html"));
+  res.sendFile(path.join(__dirname, "..", "public", "index.html"));
 });
 
+// ВАЖНО: listen
 app.listen(PORT, () => {
-  console.log("GockLine running on", PORT);
+  console.log("✅ Server started on port", PORT);
 });
