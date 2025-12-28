@@ -1,124 +1,54 @@
-/* ===============================
-   ADMIN STATE
-================================ */
-const ADMIN_ID = 5516708022; // ТВОЙ TG ID
+const ADMIN_ID="5516708022";
 
-let reports = [];
-let users = {
-  "@test": { role:"user", muted:false, banned:false }
-};
+async function openAdmin(){
+  closeAll?.();
 
-/* ===============================
-   OPEN ADMIN PANEL
-================================ */
-function openAdmin(){
-  app.style.display="none";
-  admin.style.display="block";
-  renderAdmin();
-}
+  const r = await fetch("/admin/reports");
+  const reports = await r.json();
 
-/* ===============================
-   RENDER ADMIN
-================================ */
-function renderAdmin(){
-  admin.innerHTML = `
-    <button onclick="backMain()">← Назад</button>
-    <h2>🛠 Админ панель</h2>
-
-    <h3>📩 Жалобы</h3>
-    <div id="reportList"></div>
-
-    <h3>👥 Пользователи</h3>
-    <div id="userList"></div>
+  const box=document.createElement("div");
+  box.id="adminBox";
+  box.style.cssText=`
+    position:fixed;inset:0;
+    background:#0b0d1fcc;
+    padding:20px;
+    overflow:auto;
+    animation:fade .3s
   `;
 
-  renderReports();
-  renderUsers();
-}
+  box.innerHTML="<h2>🛠 Админ панель</h2>";
 
-/* ===============================
-   REPORTS
-================================ */
-function renderReports(){
-  const box = document.getElementById("reportList");
-  box.innerHTML = "";
-
-  if(reports.length===0){
-    box.innerHTML = "<small>Жалоб нет</small>";
-    return;
-  }
-
-  reports.forEach((r,i)=>{
+  reports.forEach(rep=>{
     const d=document.createElement("div");
-    d.style.padding="10px";
-    d.style.borderBottom="1px solid #333";
+    d.style.cssText=`
+      background:#1c1f3a;
+      padding:14px;
+      border-radius:16px;
+      margin:12px 0
+    `;
     d.innerHTML=`
-      <b>${r.from}</b> → ${r.to}<br>
-      <small>${r.text}</small><br>
-      <button onclick="muteUser('${r.to}')">🔇 Мут</button>
-      <button onclick="banUser('${r.to}')">⛔ Бан</button>
+      <b>От:</b> ${rep.from}<br>
+      <b>На:</b> ${rep.to}<br>
+      <b>Причина:</b> ${rep.reason}<br>
+      <small>${new Date(rep.time).toLocaleString()}</small><br><br>
+      <button onclick="closeReport(${rep.id})">Закрыть</button>
     `;
     box.appendChild(d);
   });
+
+  const c=document.createElement("button");
+  c.innerText="Закрыть";
+  c.onclick=()=>box.remove();
+  box.appendChild(c);
+
+  document.body.appendChild(box);
 }
 
-/* ===============================
-   USERS
-================================ */
-function renderUsers(){
-  const box=document.getElementById("userList");
-  box.innerHTML="";
-
-  Object.keys(users).forEach(u=>{
-    const user=users[u];
-    const d=document.createElement("div");
-    d.style.padding="10px";
-    d.style.borderBottom="1px solid #333";
-
-    d.innerHTML=`
-      <b>${u}</b> (${user.role})<br>
-      <button onclick="setRole('${u}','user')">User</button>
-      <button onclick="setRole('${u}','verified')">✔</button>
-      <button onclick="setRole('${u}','moder')">🛡</button>
-      <button onclick="setRole('${u}','admin')">★</button>
-      <button onclick="muteUser('${u}')">🔇</button>
-      <button onclick="banUser('${u}')">⛔</button>
-    `;
-    box.appendChild(d);
+async function closeReport(id){
+  await fetch("/admin/close",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({id})
   });
-}
-
-/* ===============================
-   ACTIONS
-================================ */
-function muteUser(u){
-  if(!users[u]) return;
-  users[u].muted=true;
-  alert(`🔇 ${u} замучен`);
-}
-
-function banUser(u){
-  if(!users[u]) return;
-  users[u].banned=true;
-  alert(`⛔ ${u} заблокирован`);
-}
-
-function setRole(u,role){
-  if(!users[u]) return;
-  users[u].role=role;
-  alert(`⭐ ${u} → ${role}`);
-  renderUsers();
-}
-
-/* ===============================
-   REPORT FROM CHAT
-================================ */
-function sendReport(toUser, text){
-  reports.push({
-    from:"me",
-    to:toUser,
-    text:text,
-    time:Date.now()
-  });
-  alert("📩 Жалоба отправлена администрации");
+  alert("Закрыто");
 }
