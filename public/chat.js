@@ -1,149 +1,161 @@
-/* ===== CONFIG ===== */
 const API = location.origin;
-const WS  = location.origin.replace("https","wss");
+const WS  = location.origin.replace("http","ws");
 
-/* ===== STATE ===== */
 let socket;
-let inventoryData = {"🎂":3,"🚀":2,"💎":1};
-
-/* ===== GOCK AI ===== */
-const GockAI={
-  banned:["хуй","бля","пизд","еб","fuck","shit"],
-  spamLimit:4,
-  spamTime:3000,
-  mute:30000
-};
-let aiState={muted:0,last:[]};
+let myId = null;
+let currentChat = null;
 
 /* ===== LOGIN ===== */
-async function enter(){
-  if(!tokenInput.value) return alert("Нет токена");
-  socket=new WebSocket(WS);
-  socket.onmessage=e=>render(JSON.parse(e.data));
-  login.style.display="none";
-  app.style.display="block";
+async function login(){
+  const token = tokenInput.value.trim();
+  if(!token) return alert("Введите токен");
+
+  const r = await fetch(API+"/login",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({token})
+  });
+
+  if(!r.ok) return alert("Неверный токен");
+
+  myId = token;
+  show("main");
+  loadChats();
+
+  socket = new WebSocket(WS);
+  socket.onmessage = e => onMessage(JSON.parse(e.data));
+}
+
+/* ===== CHATS ===== */
+function loadChats(){
+  chatList.innerHTML="";
+  ["@test","@friend","@admin"].forEach(u=>{
+    const d=document.createElement("div");
+    d.className="chat";
+    d.innerHTML = `
+      ${u}
+      <span style="margin-left:6px">🔥</span>
+    `;
+    d.onclick=()=>openChat(u);
+    chatList.appendChild(d);
+  });
+}
+
+function openChat(user){
+  currentChat=user;
+  chatTitle.innerText=user;
+  messages.innerHTML="";
+  show("chat");
 }
 
 /* ===== NAV ===== */
-function openChat(n){
-  app.style.display="none";
-  chat.style.display="flex";
-  chatTitle.innerText=n;
-  messages.innerHTML="";
+function back(){
+  show("main");
+  toggle("giftPanel");
 }
-function backMain(){
-  chat.style.display="none";
-  inventory.style.display="none";
-  app.style.display="block";
+function openProfile(){
+  show("profile");
 }
 
 /* ===== SEND ===== */
-function sendText(){
-  if(!text.value) return;
-  if(!checkAI(text.value)){text.value="";return;}
-  socket.send(JSON.stringify({
+function sendMsg(){
+  const text = msgInput.value.trim();
+  if(!text) return;
+
+  const msg={
     type:"text",
-    text:text.value,
+    text,
     time:Date.now(),
-    me:true
-  }));
-  text.value="";
+    from:myId,
+    chat:currentChat
+  };
+
+  socket.send(JSON.stringify(msg));
+  renderMsg(msg,true);
+  msgInput.value="";
 }
 
-/* ===== AI CHECK ===== */
-function checkAI(t){
-  const now=Date.now();
-  if(now<aiState.muted){
-    sys("🔇 Вы в муте");
-    return false;
-  }
-  if(GockAI.banned.some(w=>t.toLowerCase().includes(w))){
-    mute("Мат");
-    return false;
-  }
-  aiState.last.push(now);
-  aiState.last=aiState.last.filter(x=>now-x<GockAI.spamTime);
-  if(aiState.last.length>GockAI.spamLimit){
-    mute("Спам");
-    return false;
-  }
-  return true;
-}
-function mute(r){
-  aiState.muted=Date.now()+GockAI.mute;
-  sys(`🔇 Мут 30с | ${r}`);
-}
-function sys(t){
-  const d=document.createElement("div");
-  d.className="msg";
-  d.style.background="#ff5c5c";
-  d.innerHTML="<b>Gock AI</b><br>"+t;
-  messages.appendChild(d);
-}
-
-/* ===== RENDER ===== */
-function render(m){
-  let el;
-  if(m.type==="gift"){
-    el=document.createElement("div");
-    el.className="giftBox";
-    el.innerText=m.gift;
-  }else{
-    el=document.createElement("div");
-    el.className="msg "+(m.me?"me":"");
-    el.innerHTML=m.text+
-      `<div class="time">${new Date(m.time).toLocaleTimeString()}</div>`;
-    el.ondblclick=()=>menu(el);
-  }
-  messages.appendChild(el);
-  messages.scrollTop=messages.scrollHeight;
-}
-
-/* ===== MENU ===== */
-function menu(m){
-  closeMenus();
-  const d=document.createElement("div");
-  d.className="msgMenu";
-  d.innerHTML=`
-    <div onclick="edit(this)">✏ Изменить</div>
-    <div onclick="del(this)">🗑 Удалить</div>`;
-  m.appendChild(d);
-}
-function closeMenus(){
-  document.querySelectorAll(".msgMenu").forEach(x=>x.remove());
-}
-function edit(e){
-  const m=e.closest(".msg");
-  const n=prompt("Изменить",m.childNodes[0].textContent);
-  if(n) m.childNodes[0].textContent=n;
-  closeMenus();
-}
-function del(e){
-  e.closest(".msg").remove();
-}
-
-/* ===== INVENTORY ===== */
-function toggleInv(){
-  inventory.innerHTML="";
-  for(let g in inventoryData){
-    if(inventoryData[g]>0){
-      const d=document.createElement("div");
-      d.className="invItem";
-      d.innerHTML=`${g} (${inventoryData[g]})
-      <button onclick="sendGift('${g}')">Отправить</button>`;
-      inventory.appendChild(d);
-    }
-  }
-  inventory.style.display=
-    inventory.style.display==="block"?"none":"block";
-}
 function sendGift(g){
-  inventoryData[g]--;
-  inventory.style.display="none";
-  socket.send(JSON.stringify({
+  toggle("giftPanel");
+  const msg={
     type:"gift",
     gift:g,
     time:Date.now(),
-    me:true
-  }));
-     }
+    from:myId,
+    chat:currentChat
+  };
+  socket.send(JSON.stringify(msg));
+  renderGift(msg,true);
+}
+
+/* ===== RECEIVE ===== */
+function onMessage(m){
+  if(m.chat!==currentChat) return;
+  if(m.type==="text") renderMsg(m,false);
+  if(m.type==="gift") renderGift(m,false);
+}
+
+/* ===== RENDER ===== */
+function renderMsg(m,me){
+  const d=document.createElement("div");
+  d.className="msg "+(me?"me":"");
+  d.innerHTML=`
+    ${m.text}
+    <div class="time">${new Date(m.time).toLocaleTimeString()}</div>
+  `;
+
+  d.ondblclick = ()=>openMenu(d,me);
+  messages.appendChild(d);
+  messages.scrollTop=messages.scrollHeight;
+}
+
+function renderGift(m){
+  const d=document.createElement("div");
+  d.className="msg";
+  d.style.fontSize="40px";
+  d.style.textAlign="center";
+  d.innerText=m.gift;
+  messages.appendChild(d);
+}
+
+/* ===== MESSAGE MENU ===== */
+function openMenu(el,me){
+  closeMenus();
+  const menu=document.createElement("div");
+  menu.className="menu";
+  menu.innerHTML=`
+    <div onclick="reply()">Ответить</div>
+    ${me?'<div onclick="editMsg(this)">Изменить</div>':''}
+    ${me?'<div onclick="deleteMsg(this)">Удалить</div>':''}
+  `;
+  el.appendChild(menu);
+}
+
+function reply(){
+  msgInput.value="> ";
+  closeMenus();
+}
+
+function editMsg(el){
+  const msg=el.closest(".msg");
+  const t=prompt("Изменить сообщение",msg.childNodes[0].textContent);
+  if(t) msg.childNodes[0].textContent=t;
+  closeMenus();
+}
+
+function deleteMsg(el){
+  el.closest(".msg").remove();
+}
+
+/* ===== PROFILE ===== */
+function saveProfile(){
+  let u=username.value.trim();
+  if(!u.startsWith("@")) return alert("Юзер должен начинаться с @");
+  alert("Сохранено (пока локально)");
+}
+
+/* ===== Gock AI (local stub) ===== */
+function gockAI(text){
+  const banned=["террор","наркот","педо"];
+  return banned.some(w=>text.toLowerCase().includes(w));
+}
