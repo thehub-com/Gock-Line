@@ -1,0 +1,46 @@
+const USER_ID="5516708022";
+
+async function openInventory(){
+  closeAll?.();
+
+  const r=await fetch("/inventory/"+USER_ID);
+  const items=await r.json();
+
+  const box=document.createElement("div");
+  box.id="inventoryBox";
+  box.style.cssText="position:fixed;inset:0;background:#000c;padding:20px";
+
+  box.innerHTML="<h2>🎁 Инвентарь</h2>";
+
+  Object.entries(items).forEach(([name,count])=>{
+    const d=document.createElement("div");
+    d.style.cssText="background:#1c1f3a;padding:14px;border-radius:14px;margin:10px 0;display:flex;justify-content:space-between";
+    d.innerHTML=`
+      <span>${name} × ${count}</span>
+      <button onclick="sendGift('${name}')">Отправить</button>
+    `;
+    box.appendChild(d);
+  });
+
+  const c=document.createElement("button");
+  c.innerText="Закрыть";
+  c.onclick=()=>box.remove();
+  box.appendChild(c);
+
+  document.body.appendChild(box);
+}
+
+async function sendGift(name){
+  await fetch("/send-gift",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({userId:USER_ID,gift:name})
+  });
+
+  const g=document.createElement("div");
+  g.className="giftBox";
+  g.innerHTML=`${name.split(" ")[0]}<span>${name}</span>`;
+  messages.appendChild(g);
+
+  document.getElementById("inventoryBox").remove();
+}
