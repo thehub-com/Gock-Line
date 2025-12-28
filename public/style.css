@@ -1,0 +1,259 @@
+:root{
+  --bg:#141626;
+  --panel:#1c1f3a;
+  --panel2:#242862;
+  --accent:#7b8cff;
+  --accent2:#c77dff;
+  --danger:#ff5c5c;
+  --text:#ffffff;
+  --muted:#9aa3b2;
+}
+
+*{
+  box-sizing:border-box;
+  font-family:-apple-system,BlinkMacSystemFont,Roboto,Arial;
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  height:100vh;
+  overflow:hidden;
+}
+
+/* ===== COMMON ===== */
+.hidden{display:none}
+
+button{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border:none;
+  border-radius:12px;
+  padding:10px 14px;
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+}
+
+input, textarea{
+  background:var(--panel2);
+  border:none;
+  border-radius:12px;
+  padding:12px;
+  color:#fff;
+}
+
+a{
+  color:var(--accent);
+  text-decoration:none;
+  text-align:center;
+}
+
+/* ===== SCREENS ===== */
+.screen{
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ===== LOGIN ===== */
+#login{
+  justify-content:center;
+  padding:20px;
+  gap:12px;
+}
+
+.logo{
+  text-align:center;
+  font-size:28px;
+  margin-bottom:10px;
+}
+
+/* ===== TOP BAR ===== */
+.topbar{
+  background:var(--panel);
+  padding:12px;
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+.topbar input{
+  flex:1;
+}
+
+/* ===== CHAT LIST ===== */
+#chatList{
+  flex:1;
+  overflow:auto;
+}
+
+.chatItem{
+  padding:16px;
+  border-bottom:1px solid #2a2e5a;
+  cursor:pointer;
+}
+
+.chatItem:hover{
+  background:#1f2250;
+}
+
+.chatItem small{
+  display:block;
+  color:var(--muted);
+  margin-top:4px;
+}
+
+/* ===== CHAT ===== */
+#chatHeader{
+  background:var(--panel);
+  padding:12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+#messages{
+  flex:1;
+  padding:12px;
+  overflow:auto;
+}
+
+/* ===== MESSAGE ===== */
+.msg{
+  max-width:75%;
+  background:var(--panel2);
+  padding:10px 12px;
+  border-radius:14px;
+  margin-bottom:10px;
+  word-wrap:break-word;
+  position:relative;
+  animation:fadeIn .2s ease;
+}
+
+.msg.me{
+  margin-left:auto;
+  background:#3b4ee0;
+}
+
+.time{
+  font-size:10px;
+  opacity:.6;
+  text-align:right;
+  margin-top:4px;
+}
+
+/* ===== MESSAGE MENU ===== */
+.msgMenu{
+  position:absolute;
+  top:-8px;
+  right:0;
+  background:#000c;
+  border-radius:10px;
+  overflow:hidden;
+  z-index:10;
+}
+
+.msgMenu div{
+  padding:8px 12px;
+  font-size:14px;
+  border-bottom:1px solid #333;
+  cursor:pointer;
+}
+
+.msgMenu div:last-child{
+  border:none;
+}
+
+.msgMenu div:hover{
+  background:#222;
+}
+
+/* ===== INPUT BAR ===== */
+#inputBar{
+  display:flex;
+  padding:10px;
+  gap:6px;
+  background:var(--panel);
+}
+
+#inputBar input{
+  flex:1;
+}
+
+/* ===== INVENTORY ===== */
+.modal{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:var(--panel);
+  max-height:60vh;
+  overflow:auto;
+  border-radius:20px 20px 0 0;
+  animation:slideUp .25s ease;
+}
+
+.invItem{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px;
+  border-bottom:1px solid #2a2e5a;
+}
+
+/* ===== GIFTS ===== */
+.giftBox{
+  width:180px;
+  height:180px;
+  margin:16px auto;
+  border-radius:24px;
+  background:linear-gradient(135deg,#6b6fff,#c77dff);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  font-size:48px;
+  animation:pulse 1.4s infinite;
+}
+
+.giftBox span{
+  font-size:12px;
+  margin-top:8px;
+}
+
+/* ===== PROFILE ===== */
+#profile{
+  padding:20px;
+  gap:10px;
+}
+
+.avatar{
+  width:100px;
+  height:100px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  margin:0 auto 12px;
+}
+
+/* ===== ADMIN ===== */
+#admin{
+  padding:20px;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes pulse{
+  0%{transform:scale(1)}
+  50%{transform:scale(1.05)}
+  100%{transform:scale(1)}
+}
+
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(4px)}
+  to{opacity:1;transform:none}
+}
+
+@keyframes slideUp{
+  from{transform:translateY(100%)}
+  to{transform:none}
+}
