@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <title>GockLine</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GockLine</title>
+
+<link rel="stylesheet" href="style.css">
+<script defer src="ui.js"></script>
+<script defer src="chat.js"></script>
 </head>
 
 <body>
@@ -12,30 +15,60 @@
 <!-- LOGIN -->
 <div id="login">
   <h2>GockLine</h2>
-  <input id="tokenInput" placeholder="Введите токен" />
+  <input id="tokenInput" placeholder="Введите токен">
   <button onclick="login()">Войти</button>
+  <a href="https://t.me/gock_registration_bot" target="_blank">
+    Получить токен в Telegram
+  </a>
 </div>
 
-<!-- APP -->
-<div id="app" class="hidden">
+<!-- MAIN -->
+<div id="main" style="display:none">
   <header>
-    <span>GockLine</span>
+    <b>GockLine</b>
+    <button onclick="openProfile()">👤</button>
   </header>
 
-  <div id="chat"></div>
+  <div id="chatList"></div>
+</div>
 
-  <div id="inputBar">
-    <input id="msgInput" placeholder="Сообщение..." />
-    <button onclick="sendMessage()">➤</button>
+<!-- CHAT -->
+<div id="chat" style="display:none">
+  <header>
+    <button onclick="back()">←</button>
+    <span id="chatTitle"></span>
+    <button onclick="toggle('giftPanel')">🎁</button>
+  </header>
+
+  <div id="messages"></div>
+
+  <div style="display:flex;padding:10px;gap:6px">
+    <input id="msgInput" placeholder="Сообщение" style="flex:1">
+    <button onclick="sendMsg()">➤</button>
   </div>
 </div>
 
-<!-- SCRIPTS -->
-<script src="ui.js"></script>
-<script src="chat.js"></script>
-<script src="gifts.js"></script>
-<script src="market.js"></script>
-<script src="gock-ai.js"></script>
-<script src="admin.js"></script>
+<!-- GIFTS -->
+<div id="giftPanel">
+  <div class="gift" onclick="sendGift('🎂')">🎂</div>
+  <div class="gift" onclick="sendGift('🔥')">🔥</div>
+  <div class="gift" onclick="sendGift('💎')">💎</div>
+  <div class="gift" onclick="sendGift('🚀')">🚀</div>
+  <div class="gift" onclick="sendGift('👑')">👑</div>
+</div>
+
+<!-- PROFILE -->
+<div id="profile" style="display:none">
+  <header>
+    <button onclick="back()">←</button>
+    <b>Профиль</b>
+  </header>
+
+  <div style="padding:16px">
+    <input id="username" placeholder="@username">
+    <button onclick="saveProfile()">Сохранить</button>
+  </div>
+</div>
+
 </body>
   </html>
