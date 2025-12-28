@@ -1,59 +1,54 @@
-const MARKET_API = "/market";
-
-let gip = 100; // временно, потом из базы
-let inventory = {};
+const USER_ID="5516708022";
 
 async function openMarket(){
-  const r = await fetch(MARKET_API);
+  closeAll?.();
+
+  const r = await fetch("/market");
   const items = await r.json();
 
   const box = document.createElement("div");
-  box.id = "marketBox";
-  box.style.cssText = `
+  box.id="marketBox";
+  box.style.cssText=`
     position:fixed;inset:0;
-    background:#000c;
+    background:#000d;
     padding:20px;
     overflow:auto;
+    animation:fade .3s
   `;
 
-  box.innerHTML = `<h2>🛒 Маркет (GIP: ${gip})</h2>`;
+  box.innerHTML="<h2>🛒 Маркет</h2>";
 
-  items.forEach(i=>{
-    const d = document.createElement("div");
-    d.style.cssText = `
+  Object.entries(items).forEach(([name,price])=>{
+    const d=document.createElement("div");
+    d.style.cssText=`
       background:#1c1f3a;
-      margin-bottom:10px;
-      padding:14px;
-      border-radius:14px;
+      padding:16px;
+      border-radius:18px;
+      margin:12px 0;
       display:flex;
       justify-content:space-between;
-      align-items:center;
+      align-items:center
     `;
-    d.innerHTML = `
-      <div>
-        <b>${i.name}</b><br>
-        <small>${i.rarity}</small>
-      </div>
-      <button onclick="buyItem('${i.id}',${i.price},'${i.name}')">
-        ${i.price} GIP
-      </button>
+    d.innerHTML=`
+      <span style="font-size:22px">${name}</span>
+      <button onclick="buy('${name}')">Купить · ${price}</button>
     `;
     box.appendChild(d);
   });
 
-  const close=document.createElement("button");
-  close.innerText="Закрыть";
-  close.onclick=()=>box.remove();
-  box.appendChild(close);
+  const c=document.createElement("button");
+  c.innerText="Закрыть";
+  c.onclick=()=>box.remove();
+  box.appendChild(c);
 
   document.body.appendChild(box);
 }
 
-function buyItem(id,price,name){
-  if(gip<price) return alert("Недостаточно GIP");
-  gip-=price;
-  inventory[name]=(inventory[name]||0)+1;
-  alert(`Куплено: ${name}`);
-  document.getElementById("marketBox").remove();
-  openMarket();
+async function buy(item){
+  await fetch("/market/buy",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({userId:USER_ID,item})
+  });
+  alert("Куплено: "+item);
 }
