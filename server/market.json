@@ -1,0 +1,9 @@
+{
+  "items": [
+    { "id": "gift1", "name": "🎂 Торт", "price": 10, "rarity": "common" },
+    { "id": "gift2", "name": "🚀 Ракета", "price": 25, "rarity": "rare" },
+    { "id": "gift3", "name": "💎 Алмаз", "price": 50, "rarity": "epic" },
+    { "id": "gift4", "name": "🏆 Кубок", "price": 100, "rarity": "legendary" },
+    { "id": "gift5", "name": "❤️ Сердце", "price": 5, "rarity": "common" }
+  ]
+}
