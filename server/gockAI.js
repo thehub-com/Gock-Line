@@ -1,22 +1,43 @@
-export function checkMessage(text){
-  const banned = [
-    "террор",
-    "наркот",
-    "педо",
-    "экстремизм",
-    "взрыв"
-  ];
+import fs from "fs";
 
-  const lower = text.toLowerCase();
+const FILE="./punish.json";
 
-  for(const w of banned){
-    if(lower.includes(w)){
-      return {
-        ok:false,
-        reason:`Запрещённый контент: ${w}`
-      };
+/* запрещено законом */
+const FORBIDDEN=[
+  "взорвать","бомба","террор",
+  "продам паспорт","взлом",
+  "карта украд","наркотик",
+  "убью","расстрел"
+];
+
+function read(){
+  if(!fs.existsSync(FILE)) return [];
+  return JSON.parse(fs.readFileSync(FILE,"utf8"));
+}
+
+function save(d){
+  fs.writeFileSync(FILE,JSON.stringify(d,null,2));
+}
+
+export function gockCheck({userId,text}){
+  const low=text.toLowerCase();
+  for(const bad of FORBIDDEN){
+    if(low.includes(bad)){
+      const p=read();
+      p.push({
+        id:Date.now(),
+        userId,
+        text,
+        type:"ban",
+        time:Date.now()
+      });
+      save(p);
+      return { action:"ban", reason:bad };
     }
   }
+  return { action:"ok" };
+}
 
-  return { ok:true };
+export function getPunish(){
+  return read();
 }
