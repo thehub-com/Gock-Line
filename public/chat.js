@@ -1,95 +1,118 @@
 /* ===============================
-   CHAT STATE
+   STATE
 ================================ */
-let replyTarget = null;
-let editingMsg = null;
+let replyTo = null;
+let mutedUntil = 0;
 
 /* ===============================
-   HELPERS
+   BAD WORDS (пример)
 ================================ */
-function nowTime(){
-  const d = new Date();
-  return d.getHours().toString().padStart(2,"0") + ":" +
-         d.getMinutes().toString().padStart(2,"0");
+const BAD_WORDS = [
+  "сука","бля","хуй","пизд","ебан","ебать"
+];
+
+/* ===============================
+   INVISIBLE GOCK AI (MODERATION)
+================================ */
+function moderateMessage(text){
+  const lower = text.toLowerCase();
+
+  for(const bad of BAD_WORDS){
+    if(lower.includes(bad)){
+      punishUser();
+      return false;
+    }
+  }
+  return true;
+}
+
+function punishUser(){
+  const now = Date.now();
+
+  // если уже мут — бан
+  if(now < mutedUntil){
+    alert("⛔ Вы заблокированы Gock AI");
+    mutedUntil = Infinity;
+    return;
+  }
+
+  // первый раз — мут 30 сек
+  mutedUntil = now + 30000;
+  alert("⚠ Gock AI: вы замучены на 30 секунд за нарушение");
 }
 
 /* ===============================
    SEND TEXT
 ================================ */
 function sendText(){
-  const input = document.getElementById("text");
-  if(!input.value.trim()) return;
+  if(!text.value) return;
 
-  addMessage({
-    text: input.value,
-    me: true,
-    time: nowTime(),
-    reply: replyTarget
-  });
+  if(Date.now() < mutedUntil){
+    alert("🔇 Вы замучены");
+    return;
+  }
 
-  replyTarget = null;
-  input.value = "";
+  const userText = text.value;
+  text.value = "";
+
+  // МОДЕРАЦИЯ
+  if(!moderateMessage(userText)) return;
+
+  renderUserMessage(userText);
+
+  // ЕСЛИ ЧАТ С AI
+  if(chatTitle.innerText === "Gock AI"){
+    sendToAI(userText);
+  }
 }
 
 /* ===============================
-   ADD MESSAGE
+   RENDER USER MESSAGE
 ================================ */
-function addMessage({text, me, time, reply}){
-  const messages = document.getElementById("messages");
-
+function renderUserMessage(text){
   const msg = document.createElement("div");
-  msg.className = "msg" + (me ? " me" : "");
-  msg.dataset.me = me ? "1" : "0";
+  msg.className = "msg me";
 
-  if(reply){
-    const r = document.createElement("div");
-    r.className = "replyBox";
-    r.innerText = reply;
-    msg.appendChild(r);
+  let html = "";
+
+  if(replyTo){
+    html += `<div class="replyBox">${replyTo}</div>`;
+    replyTo = null;
   }
 
-  const body = document.createElement("div");
-  body.className = "msgText";
-  body.innerText = text;
-  msg.appendChild(body);
+  html += `<span class="msgText">${text}</span>
+           <div class="time">${timeNow()}</div>`;
 
-  const t = document.createElement("div");
-  t.className = "time";
-  t.innerText = time;
-  msg.appendChild(t);
+  msg.innerHTML = html;
 
-  msg.addEventListener("dblclick",()=>openMsgMenu(msg));
+  msg.ondblclick = () => openMsgMenu(msg);
 
   messages.appendChild(msg);
   messages.scrollTop = messages.scrollHeight;
 }
 
 /* ===============================
-   MESSAGE MENU (2 TAP)
+   MESSAGE MENU
 ================================ */
 function openMsgMenu(msg){
-  closeMsgMenus();
+  closeMenus();
+
+  // только свои сообщения
+  if(!msg.classList.contains("me")) return;
 
   const menu = document.createElement("div");
   menu.className = "msgMenu";
 
-  let html = `<div onclick="replyMsg(this)">↩ Ответить</div>`;
+  menu.innerHTML = `
+    <div onclick="replyMsg(this)">↩ Ответить</div>
+    <div onclick="editMsg(this)">✏ Изменить</div>
+    <div onclick="deleteMsg(this)">🗑 Удалить</div>
+  `;
 
-  if(msg.dataset.me === "1"){
-    html += `
-      <div onclick="editMsg(this)">✏ Изменить</div>
-      <div onclick="deleteMsg(this)">🗑 Удалить</div>
-    `;
-  }
-
-  menu.innerHTML = html;
   msg.appendChild(menu);
 }
 
-/* ===============================
-   CLOSE MENUS
-================================ */
-function closeMsgMenus(){
+function closeMenus(){
   document.querySelectorAll(".msgMenu").forEach(m=>m.remove());
 }
 
@@ -98,39 +121,47 @@ function closeMsgMenus(){
 ================================ */
 function replyMsg(el){
   const msg = el.closest(".msg");
-  const text = msg.querySelector(".msgText").innerText;
-  replyTarget = text;
-  closeMsgMenus();
+  replyTo = msg.querySelector(".msgText").innerText;
+  closeMenus();
 }
 
 /* ===============================
-   EDIT (ONLY TEXT, TIME SAFE)
+   EDIT (ТОЛЬКО ТЕКСТ)
 ================================ */
 function editMsg(el){
   const msg = el.closest(".msg");
-  const textNode = msg.querySelector(".msgText");
+  const textEl = msg.querySelector(".msgText");
 
-  const newText = prompt("Изменить сообщение", textNode.innerText);
-  if(newText !== null && newText.trim()){
-    textNode.innerText = newText;
+  const newText = prompt("Изменить сообщение", textEl.innerText);
+  if(newText !== null && newText.trim() !== ""){
+    textEl.innerText = newText;
   }
-  closeMsgMenus();
+
+  closeMenus();
 }
 
 /* ===============================
    DELETE
 ================================ */
 function deleteMsg(el){
-  const msg = el.closest(".msg");
-  msg.remove();
-  closeMsgMenus();
+  el.closest(".msg").remove();
+  closeMenus();
 }
 
 /* ===============================
-   CLICK OUTSIDE
+   TIME
 ================================ */
-document.addEventListener("click",e=>{
+function timeNow(){
+  const d = new Date();
+  return d.getHours().toString().padStart(2,"0") + ":" +
+         d.getMinutes().toString().padStart(2,"0");
+}
+
+/* ===============================
+   GLOBAL CLICK CLOSE
+================================ */
+document.addEventListener("click", e=>{
   if(!e.target.closest(".msg")){
-    closeMsgMenus();
+    closeMenus();
   }
 });
