@@ -1,150 +1,10 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GockLine</title>
-
-<style>
-:root{
-  --bg:#141626;
-  --panel:#1c1f3a;
-  --panel2:#252862;
-  --accent:#7b8cff;
-  --accent2:#c77dff;
-  --danger:#ff5c5c;
-  --text:#fff;
-  --muted:#9aa3b2;
-}
-*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,Roboto}
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  height:100vh;
-  overflow:hidden;
-}
-button{
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  border:none;
-  border-radius:12px;
-  padding:10px 14px;
-  color:#fff;
-  font-weight:600;
-}
-#login,#app,#chat{height:100vh}
-#login{
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  padding:20px;
-}
-#login input{
-  padding:14px;
-  border-radius:12px;
-  border:none;
-  margin-bottom:12px;
-  background:var(--panel2);
-  color:#fff;
-}
-#app{display:none}
-header{
-  padding:12px;
-  background:var(--panel);
-  display:flex;
-  gap:8px;
-}
-header input{
-  flex:1;
-  padding:10px;
-  border-radius:10px;
-  border:none;
-  background:var(--panel2);
-  color:#fff;
-}
-#chatList{overflow:auto;height:calc(100vh - 60px)}
-.chatItem{
-  padding:16px;
-  border-bottom:1px solid #2a2e5a;
-}
-#chat{display:none;flex-direction:column}
-#chatHeader{
-  background:var(--panel);
-  padding:12px;
-  display:flex;
-  justify-content:space-between;
-}
-#messages{
-  flex:1;
-  padding:12px;
-  overflow:auto;
-}
-.msg{
-  max-width:75%;
-  background:var(--panel2);
-  padding:10px 12px;
-  border-radius:14px;
-  margin-bottom:10px;
-  position:relative;
-}
-.me{margin-left:auto;background:#3b4ee0}
-.time{font-size:10px;opacity:.6;text-align:right}
-.msgMenu{
-  position:absolute;
-  right:0;
-  top:-6px;
-  background:#000c;
-  border-radius:10px;
-}
-.msgMenu div{
-  padding:8px 12px;
-  border-bottom:1px solid #333;
-}
-#inputBar{
-  display:flex;
-  padding:10px;
-  background:var(--panel);
-  gap:6px;
-}
-#inputBar input{
-  flex:1;
-  padding:10px;
-  border-radius:10px;
-  border:none;
-  background:var(--panel2);
-  color:#fff;
-}
-#inventory{
-  position:fixed;
-  bottom:0;left:0;right:0;
-  background:var(--panel);
-  max-height:60vh;
-  overflow:auto;
-  display:none;
-}
-.invItem{
-  display:flex;
-  justify-content:space-between;
-  padding:14px;
-  border-bottom:1px solid #2a2e5a;
-}
-.giftBox{
-  width:150px;height:150px;
-  margin:12px auto;
-  border-radius:22px;
-  background:linear-gradient(135deg,#6b6fff,#c77dff);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  font-size:46px;
-  animation:pulse 1.4s infinite;
-}
-@keyframes pulse{
-  0%{transform:scale(1)}
-  50%{transform:scale(1.05)}
-  100%{transform:scale(1)}
-}
-</style>
+  <meta charset="UTF-8" />
+  <title>GockLine</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
@@ -152,39 +12,30 @@ header input{
 <!-- LOGIN -->
 <div id="login">
   <h2>GockLine</h2>
-  <input id="tokenInput" placeholder="Введите токен">
-  <button onclick="enter()">Войти</button>
+  <input id="tokenInput" placeholder="Введите токен" />
+  <button onclick="login()">Войти</button>
 </div>
 
-<!-- MAIN -->
-<div id="app">
+<!-- APP -->
+<div id="app" class="hidden">
   <header>
-    <input placeholder="Поиск">
-    <button onclick="openChat('Маркет')">🛒</button>
+    <span>GockLine</span>
   </header>
-  <div id="chatList">
-    <div class="chatItem" onclick="openChat('@test')">
-      @test<br><small>Онлайн</small>
-    </div>
-  </div>
-</div>
 
-<!-- CHAT -->
-<div id="chat">
-  <div id="chatHeader">
-    <button onclick="backMain()">←</button>
-    <span id="chatTitle"></span>
-    <button onclick="toggleInv()">🎁</button>
-  </div>
-  <div id="messages"></div>
+  <div id="chat"></div>
+
   <div id="inputBar">
-    <input id="text" placeholder="Сообщение">
-    <button onclick="sendText()">➤</button>
+    <input id="msgInput" placeholder="Сообщение..." />
+    <button onclick="sendMessage()">➤</button>
   </div>
 </div>
 
-<div id="inventory"></div>
-
+<!-- SCRIPTS -->
+<script src="ui.js"></script>
 <script src="chat.js"></script>
+<script src="gifts.js"></script>
+<script src="market.js"></script>
+<script src="gock-ai.js"></script>
+<script src="admin.js"></script>
 </body>
   </html>
