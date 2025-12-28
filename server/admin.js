@@ -1,40 +1,36 @@
 import fs from "fs";
 
-const file = "./punishments.json";
+const REPORTS_FILE = "./reports.json";
 
-function load(){
-  return JSON.parse(fs.readFileSync(file));
-}
-function save(data){
-  fs.writeFileSync(file, JSON.stringify(data,null,2));
+function readReports(){
+  if(!fs.existsSync(REPORTS_FILE)) return [];
+  return JSON.parse(fs.readFileSync(REPORTS_FILE,"utf8"));
 }
 
-export function banUser(userId){
-  const d = load();
-  if(!d.bans.includes(userId)){
-    d.bans.push(userId);
-    save(d);
-  }
+function saveReports(data){
+  fs.writeFileSync(REPORTS_FILE,JSON.stringify(data,null,2));
 }
 
-export function muteUser(userId, minutes){
-  const d = load();
-  d.mutes[userId] = Date.now() + minutes*60000;
-  save(d);
+export function addReport(from,to,reason){
+  const r = readReports();
+  r.push({
+    id:Date.now(),
+    from,
+    to,
+    reason,
+    time:Date.now(),
+    status:"open"
+  });
+  saveReports(r);
 }
 
-export function isBanned(userId){
-  const d = load();
-  return d.bans.includes(userId);
+export function getReports(){
+  return readReports();
 }
 
-export function isMuted(userId){
-  const d = load();
-  if(!d.mutes[userId]) return false;
-  if(Date.now() > d.mutes[userId]){
-    delete d.mutes[userId];
-    save(d);
-    return false;
-  }
-  return true;
-     }
+export function closeReport(id){
+  const r = readReports();
+  const rep = r.find(x=>x.id==id);
+  if(rep) rep.status="closed";
+  saveReports(r);
+}
