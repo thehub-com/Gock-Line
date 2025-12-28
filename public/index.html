@@ -1,358 +1,94 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GockLine</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GockLine</title>
 
-<style>
-:root{
-  --bg:#141626;
-  --panel:#1c1f3a;
-  --panel2:#252862;
-  --accent:#7b8cff;
-  --accent2:#c77dff;
-  --danger:#ff5c5c;
-  --text:#fff;
-  --muted:#9aa3b2;
-}
-
-*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,Roboto}
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  height:100vh;
-  overflow:hidden;
-}
-
-button{
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  border:none;
-  border-radius:12px;
-  padding:10px 14px;
-  color:#fff;
-  font-weight:600;
-}
-.hidden{display:none}
-
-/* ===== LOGIN ===== */
-#login{
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  padding:20px;
-}
-#login input{
-  padding:14px;
-  border-radius:12px;
-  border:none;
-  margin-bottom:12px;
-  background:var(--panel2);
-  color:#fff;
-}
-#login a{
-  text-align:center;
-  color:var(--accent);
-  margin-top:8px;
-}
-
-/* ===== MAIN ===== */
-#app{display:none;height:100vh}
-header{
-  padding:12px;
-  background:var(--panel);
-  display:flex;
-  gap:8px;
-}
-header input{
-  flex:1;
-  padding:10px;
-  border-radius:10px;
-  border:none;
-  background:var(--panel2);
-  color:#fff;
-}
-#chatList{
-  height:calc(100vh - 60px);
-  overflow:auto;
-}
-.chatItem{
-  padding:16px;
-  border-bottom:1px solid #2a2e5a;
-}
-.chatItem small{color:var(--muted)}
-
-/* ===== CHAT ===== */
-#chat{
-  display:none;
-  flex-direction:column;
-  height:100vh;
-}
-#chatHeader{
-  background:var(--panel);
-  padding:12px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-#messages{
-  flex:1;
-  padding:12px;
-  overflow:auto;
-}
-
-/* ===== MESSAGE ===== */
-.msg{
-  max-width:75%;
-  background:var(--panel2);
-  padding:10px 12px;
-  border-radius:14px;
-  margin-bottom:10px;
-  word-wrap:break-word;
-  position:relative;
-}
-.me{margin-left:auto;background:#3b4ee0}
-.time{
-  font-size:10px;
-  opacity:.6;
-  text-align:right;
-}
-
-/* ===== MESSAGE MENU ===== */
-.msgMenu{
-  position:absolute;
-  right:0;
-  top:-6px;
-  background:#000c;
-  border-radius:10px;
-  overflow:hidden;
-}
-.msgMenu div{
-  padding:8px 12px;
-  border-bottom:1px solid #333;
-}
-.msgMenu div:last-child{border:none}
-
-/* ===== INPUT ===== */
-#inputBar{
-  display:flex;
-  padding:10px;
-  background:var(--panel);
-  gap:6px;
-}
-#inputBar input{
-  flex:1;
-  padding:10px;
-  border-radius:10px;
-  border:none;
-  background:var(--panel2);
-  color:#fff;
-}
-
-/* ===== GIFTS ===== */
-.giftBox{
-  width:160px;
-  height:160px;
-  margin:14px auto;
-  border-radius:24px;
-  background:linear-gradient(135deg,#6b6fff,#c77dff);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  font-size:48px;
-  animation:pulse 1.4s infinite;
-}
-@keyframes pulse{
-  0%{transform:scale(1)}
-  50%{transform:scale(1.05)}
-  100%{transform:scale(1)}
-}
-
-/* ===== INVENTORY ===== */
-#inventory{
-  position:fixed;
-  bottom:0;left:0;right:0;
-  background:var(--panel);
-  max-height:60vh;
-  overflow:auto;
-  display:none;
-}
-.invItem{
-  display:flex;
-  justify-content:space-between;
-  padding:14px;
-  border-bottom:1px solid #2a2e5a;
-}
-</style>
+  <!-- UI styles -->
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<!-- LOGIN -->
-<div id="login">
-  <h2>GockLine</h2>
+<!-- ================= LOGIN ================= -->
+<div id="login" class="screen">
+  <h2 class="logo">GockLine</h2>
+
   <input id="tokenInput" placeholder="Введите токен">
-  <button onclick="enter()">Войти</button>
+  <button onclick="login()">Войти</button>
+
   <a href="https://t.me/gock_registration_bot" target="_blank">
     Получить токен в Telegram
   </a>
 </div>
 
-<!-- MAIN -->
-<div id="app">
-  <header>
+<!-- ================= MAIN ================= -->
+<div id="app" class="screen hidden">
+
+  <header class="topbar">
     <input placeholder="Поиск">
-    <button onclick="openChat('@test')">💬</button>
+    <button onclick="openProfile()">👤</button>
+    <button onclick="openAdmin()">🛠</button>
   </header>
+
   <div id="chatList">
+    <div class="chatItem" onclick="openChat('market')">
+      🛒 Gock AI Маркет
+      <small>Подарки · NFT · AI</small>
+    </div>
+
     <div class="chatItem" onclick="openChat('@test')">
-      @test<br><small>Онлайн</small>
+      @test
+      <small>Онлайн</small>
     </div>
   </div>
 </div>
 
-<!-- CHAT -->
-<div id="chat">
+<!-- ================= CHAT ================= -->
+<div id="chat" class="screen hidden">
+
   <div id="chatHeader">
-    <button onclick="backMain()">←</button>
+    <button onclick="goHome()">←</button>
     <span id="chatTitle"></span>
-    <button onclick="toggleInv()">🎁</button>
+    <button onclick="toggleInventory()">🎁</button>
   </div>
 
   <div id="messages"></div>
 
   <div id="inputBar">
-    <input id="text" placeholder="Сообщение">
-    <button onclick="sendText()">➤</button>
+    <input id="messageInput" placeholder="Сообщение">
+    <button onclick="sendMessage()">➤</button>
   </div>
 </div>
 
-<!-- INVENTORY -->
-<div id="inventory"></div>
+<!-- ================= INVENTORY ================= -->
+<div id="inventory" class="modal hidden"></div>
 
-<script>
-/* ===== CONFIG ===== */
-const API = "https://gock-line.onrender.com";
-const WS  = "ws://gock-online.onrender.com";
+<!-- ================= PROFILE ================= -->
+<div id="profile" class="screen hidden">
+  <button onclick="goHome()">←</button>
 
-/* ===== STATE ===== */
-let socket;
-let inventoryData={"🎂":3,"🚀":2,"💎":1};
+  <div class="avatar"></div>
 
-/* ===== LOGIN ===== */
-async function enter(){
-  const token=tokenInput.value;
-  if(!token) return alert("Нет токена");
+  <input id="profileUsername" placeholder="@username">
+  <input placeholder="Ник">
+  <textarea placeholder="Bio"></textarea>
 
-  const r=await fetch(API+"/login",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({token})
-  });
-  if(!r.ok) return alert("Ошибка входа");
+  <button>Сохранить</button>
+</div>
 
-  socket=new WebSocket(WS);
-  socket.onmessage=e=>render(JSON.parse(e.data));
+<!-- ================= ADMIN ================= -->
+<div id="admin" class="screen hidden">
+  <button onclick="goHome()">←</button>
+  <h3>Админ панель</h3>
+  <p>Пользователи · Жалобы · Роли</p>
+</div>
 
-  login.style.display="none";
-  app.style.display="block";
-}
-
-/* ===== NAV ===== */
-function openChat(n){
-  app.style.display="none";
-  chat.style.display="flex";
-  chatTitle.innerText=n;
-  messages.innerHTML="";
-}
-function backMain(){
-  chat.style.display="none";
-  inventory.style.display="none";
-  app.style.display="block";
-}
-
-/* ===== SEND ===== */
-function sendText(){
-  if(!text.value) return;
-  socket.send(JSON.stringify({
-    type:"text",
-    text:text.value,
-    time:Date.now(),
-    me:true
-  }));
-  text.value="";
-}
-
-/* ===== RENDER ===== */
-function render(msg){
-  let el;
-  if(msg.type==="gift"){
-    el=document.createElement("div");
-    el.className="giftBox";
-    el.innerText=msg.gift;
-  }else{
-    el=document.createElement("div");
-    el.className="msg "+(msg.me?"me":"");
-    el.innerHTML=msg.text+
-      `<div class="time">${new Date(msg.time).toLocaleTimeString()}</div>`;
-    el.ondblclick=()=>openMenu(el);
-  }
-  messages.appendChild(el);
-  messages.scrollTop=messages.scrollHeight;
-}
-
-/* ===== MSG MENU ===== */
-function openMenu(m){
-  closeMenus();
-  const menu=document.createElement("div");
-  menu.className="msgMenu";
-  menu.innerHTML=`
-    <div onclick="reply()">Ответить</div>
-    <div onclick="edit(this)">Изменить</div>
-    <div onclick="del(this)">Удалить</div>`;
-  m.appendChild(menu);
-}
-function closeMenus(){
-  document.querySelectorAll(".msgMenu").forEach(m=>m.remove());
-}
-function edit(el){
-  const msg=el.closest(".msg");
-  const t=prompt("Изменить",msg.childNodes[0].textContent);
-  if(t) msg.childNodes[0].textContent=t;
-  closeMenus();
-}
-function del(el){
-  el.closest(".msg").remove();
-}
-
-/* ===== INVENTORY ===== */
-function toggleInv(){
-  inventory.innerHTML="";
-  for(let g in inventoryData){
-    if(inventoryData[g]>0){
-      const d=document.createElement("div");
-      d.className="invItem";
-      d.innerHTML=`${g} (${inventoryData[g]})
-      <button onclick="sendGift('${g}')">Отправить</button>`;
-      inventory.appendChild(d);
-    }
-  }
-  inventory.style.display=
-    inventory.style.display==="block"?"none":"block";
-}
-function sendGift(g){
-  inventoryData[g]--;
-  inventory.style.display="none";
-  socket.send(JSON.stringify({
-    type:"gift",
-    gift:g,
-    time:Date.now(),
-    me:true
-  }));
-}
-</script>
+<!-- ================= SCRIPTS ================= -->
+<script src="state.js"></script>
+<script src="ui.js"></script>
+<script src="chat.js"></script>
+<script src="gifts.js"></script>
 
 </body>
-  </html>
+    </html>
