@@ -1,167 +1,149 @@
-/* ===============================
-   STATE
-================================ */
-let replyTo = null;
-let mutedUntil = 0;
+/* ===== CONFIG ===== */
+const API = location.origin;
+const WS  = location.origin.replace("https","wss");
 
-/* ===============================
-   BAD WORDS (пример)
-================================ */
-const BAD_WORDS = [
-  "сука","бля","хуй","пизд","ебан","ебать"
-];
+/* ===== STATE ===== */
+let socket;
+let inventoryData = {"🎂":3,"🚀":2,"💎":1};
 
-/* ===============================
-   INVISIBLE GOCK AI (MODERATION)
-================================ */
-function moderateMessage(text){
-  const lower = text.toLowerCase();
+/* ===== GOCK AI ===== */
+const GockAI={
+  banned:["хуй","бля","пизд","еб","fuck","shit"],
+  spamLimit:4,
+  spamTime:3000,
+  mute:30000
+};
+let aiState={muted:0,last:[]};
 
-  for(const bad of BAD_WORDS){
-    if(lower.includes(bad)){
-      punishUser();
-      return false;
-    }
+/* ===== LOGIN ===== */
+async function enter(){
+  if(!tokenInput.value) return alert("Нет токена");
+  socket=new WebSocket(WS);
+  socket.onmessage=e=>render(JSON.parse(e.data));
+  login.style.display="none";
+  app.style.display="block";
+}
+
+/* ===== NAV ===== */
+function openChat(n){
+  app.style.display="none";
+  chat.style.display="flex";
+  chatTitle.innerText=n;
+  messages.innerHTML="";
+}
+function backMain(){
+  chat.style.display="none";
+  inventory.style.display="none";
+  app.style.display="block";
+}
+
+/* ===== SEND ===== */
+function sendText(){
+  if(!text.value) return;
+  if(!checkAI(text.value)){text.value="";return;}
+  socket.send(JSON.stringify({
+    type:"text",
+    text:text.value,
+    time:Date.now(),
+    me:true
+  }));
+  text.value="";
+}
+
+/* ===== AI CHECK ===== */
+function checkAI(t){
+  const now=Date.now();
+  if(now<aiState.muted){
+    sys("🔇 Вы в муте");
+    return false;
+  }
+  if(GockAI.banned.some(w=>t.toLowerCase().includes(w))){
+    mute("Мат");
+    return false;
+  }
+  aiState.last.push(now);
+  aiState.last=aiState.last.filter(x=>now-x<GockAI.spamTime);
+  if(aiState.last.length>GockAI.spamLimit){
+    mute("Спам");
+    return false;
   }
   return true;
 }
-
-function punishUser(){
-  const now = Date.now();
-
-  // если уже мут — бан
-  if(now < mutedUntil){
-    alert("⛔ Вы заблокированы Gock AI");
-    mutedUntil = Infinity;
-    return;
-  }
-
-  // первый раз — мут 30 сек
-  mutedUntil = now + 30000;
-  alert("⚠ Gock AI: вы замучены на 30 секунд за нарушение");
+function mute(r){
+  aiState.muted=Date.now()+GockAI.mute;
+  sys(`🔇 Мут 30с | ${r}`);
+}
+function sys(t){
+  const d=document.createElement("div");
+  d.className="msg";
+  d.style.background="#ff5c5c";
+  d.innerHTML="<b>Gock AI</b><br>"+t;
+  messages.appendChild(d);
 }
 
-/* ===============================
-   SEND TEXT
-================================ */
-function sendText(){
-  if(!text.value) return;
-
-  if(Date.now() < mutedUntil){
-    alert("🔇 Вы замучены");
-    return;
+/* ===== RENDER ===== */
+function render(m){
+  let el;
+  if(m.type==="gift"){
+    el=document.createElement("div");
+    el.className="giftBox";
+    el.innerText=m.gift;
+  }else{
+    el=document.createElement("div");
+    el.className="msg "+(m.me?"me":"");
+    el.innerHTML=m.text+
+      `<div class="time">${new Date(m.time).toLocaleTimeString()}</div>`;
+    el.ondblclick=()=>menu(el);
   }
-
-  const userText = text.value;
-  text.value = "";
-
-  // МОДЕРАЦИЯ
-  if(!moderateMessage(userText)) return;
-
-  renderUserMessage(userText);
-
-  // ЕСЛИ ЧАТ С AI
-  if(chatTitle.innerText === "Gock AI"){
-    sendToAI(userText);
-  }
+  messages.appendChild(el);
+  messages.scrollTop=messages.scrollHeight;
 }
 
-/* ===============================
-   RENDER USER MESSAGE
-================================ */
-function renderUserMessage(text){
-  const msg = document.createElement("div");
-  msg.className = "msg me";
-
-  let html = "";
-
-  if(replyTo){
-    html += `<div class="replyBox">${replyTo}</div>`;
-    replyTo = null;
-  }
-
-  html += `<span class="msgText">${text}</span>
-           <div class="time">${timeNow()}</div>`;
-
-  msg.innerHTML = html;
-
-  msg.ondblclick = () => openMsgMenu(msg);
-
-  messages.appendChild(msg);
-  messages.scrollTop = messages.scrollHeight;
-}
-
-/* ===============================
-   MESSAGE MENU
-================================ */
-function openMsgMenu(msg){
+/* ===== MENU ===== */
+function menu(m){
   closeMenus();
-
-  // только свои сообщения
-  if(!msg.classList.contains("me")) return;
-
-  const menu = document.createElement("div");
-  menu.className = "msgMenu";
-
-  menu.innerHTML = `
-    <div onclick="replyMsg(this)">↩ Ответить</div>
-    <div onclick="editMsg(this)">✏ Изменить</div>
-    <div onclick="deleteMsg(this)">🗑 Удалить</div>
-  `;
-
-  msg.appendChild(menu);
+  const d=document.createElement("div");
+  d.className="msgMenu";
+  d.innerHTML=`
+    <div onclick="edit(this)">✏ Изменить</div>
+    <div onclick="del(this)">🗑 Удалить</div>`;
+  m.appendChild(d);
 }
-
 function closeMenus(){
-  document.querySelectorAll(".msgMenu").forEach(m=>m.remove());
+  document.querySelectorAll(".msgMenu").forEach(x=>x.remove());
 }
-
-/* ===============================
-   REPLY
-================================ */
-function replyMsg(el){
-  const msg = el.closest(".msg");
-  replyTo = msg.querySelector(".msgText").innerText;
+function edit(e){
+  const m=e.closest(".msg");
+  const n=prompt("Изменить",m.childNodes[0].textContent);
+  if(n) m.childNodes[0].textContent=n;
   closeMenus();
 }
+function del(e){
+  e.closest(".msg").remove();
+}
 
-/* ===============================
-   EDIT (ТОЛЬКО ТЕКСТ)
-================================ */
-function editMsg(el){
-  const msg = el.closest(".msg");
-  const textEl = msg.querySelector(".msgText");
-
-  const newText = prompt("Изменить сообщение", textEl.innerText);
-  if(newText !== null && newText.trim() !== ""){
-    textEl.innerText = newText;
+/* ===== INVENTORY ===== */
+function toggleInv(){
+  inventory.innerHTML="";
+  for(let g in inventoryData){
+    if(inventoryData[g]>0){
+      const d=document.createElement("div");
+      d.className="invItem";
+      d.innerHTML=`${g} (${inventoryData[g]})
+      <button onclick="sendGift('${g}')">Отправить</button>`;
+      inventory.appendChild(d);
+    }
   }
-
-  closeMenus();
+  inventory.style.display=
+    inventory.style.display==="block"?"none":"block";
 }
-
-/* ===============================
-   DELETE
-================================ */
-function deleteMsg(el){
-  el.closest(".msg").remove();
-  closeMenus();
-}
-
-/* ===============================
-   TIME
-================================ */
-function timeNow(){
-  const d = new Date();
-  return d.getHours().toString().padStart(2,"0") + ":" +
-         d.getMinutes().toString().padStart(2,"0");
-}
-
-/* ===============================
-   GLOBAL CLICK CLOSE
-================================ */
-document.addEventListener("click", e=>{
-  if(!e.target.closest(".msg")){
-    closeMenus();
-  }
-});
+function sendGift(g){
+  inventoryData[g]--;
+  inventory.style.display="none";
+  socket.send(JSON.stringify({
+    type:"gift",
+    gift:g,
+    time:Date.now(),
+    me:true
+  }));
+     }
